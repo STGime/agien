@@ -1,7 +1,8 @@
 SHELL := /bin/bash
 DENO  ?= deno
+DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/agien
 
-.PHONY: test test-edge test-js test-ml lint lint-edge lint-js lint-ml
+.PHONY: test test-edge test-js test-ml test-db lint lint-edge lint-js lint-ml db-up db-reset
 
 ## Run all three test suites; exits non-zero if any one fails.
 test:
@@ -31,3 +32,13 @@ lint-js:
 
 lint-ml:
 	cd ml && uv run ruff check . && uv run ruff format --check .
+
+## Local Postgres + database tests (issue #3).
+db-up:
+	docker compose up -d postgres
+
+db-reset: db-up
+	cd apps/edge && DATABASE_URL=$(DATABASE_URL) $(DENO) run --allow-net --allow-read --allow-env db/reset.ts
+
+test-db:
+	cd apps/edge && DATABASE_URL=$(DATABASE_URL) $(DENO) test --allow-net --allow-read --allow-env db/

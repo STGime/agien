@@ -50,4 +50,19 @@ deno run --allow-net --allow-write scripts/refresh_ip_lists.ts
 Run the tests with `make test-edge`; `webbotauth.ts` targets 100% branch
 coverage and the fixture benchmark must stay under a 2 ms median.
 
+## Database (schema migrations)
+
+`apps/edge/migrations/` holds numbered, idempotent SQL migrations — `venues`,
+`api_keys`, `sessions`, `evaluations`, `outcomes` — each with per-venue
+row-level security, plus a seed (`ven_test_a` / `ven_test_b`).
+
+```bash
+make db-reset   # docker compose up Postgres, apply migrations + seed
+make test-db    # migrations + RLS tests against local Postgres
+```
+
+`make test-db` needs `DATABASE_URL` (defaults to the local docker Postgres) and
+Docker daemon access. In CI the `db` job provides Postgres as a service
+container, so the same tests run on every PR without a local database.
+
 See `CONTRIBUTING.md` for the TDD (red-first) workflow and branch naming.

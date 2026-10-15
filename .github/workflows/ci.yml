@@ -40,6 +40,31 @@ jobs:
       - name: Test ml
         run: cd ml && uv run pytest -q
 
+  db:
+    name: db (Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agien
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agien"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test db
+        run: cd apps/edge && DATABASE_URL=postgres://postgres:postgres@localhost:5432/agien deno test --allow-net --allow-read --allow-env db/
+
   lint:
     name: lint
     runs-on: ubuntu-latest
