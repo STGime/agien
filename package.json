@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@eurobase/sdk": "^0.9.0"
+  }
+}
