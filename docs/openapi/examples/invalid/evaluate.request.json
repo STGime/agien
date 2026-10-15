@@ -1,0 +1,5 @@
+{
+  "venue_id": "01926f8f-0000-0000-0000-000000000001",
+  "request": { "ip": "203.0.113.7", "user_agent": "curl/8.0" },
+  "booking": { "cancellation_policy": "refundable" }
+}

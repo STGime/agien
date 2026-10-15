@@ -1,0 +1,8 @@
+{
+  "session_token": "sess_abc123",
+  "feature_vector": {
+    "mouse_entropy": 0.83,
+    "keystroke_dwell_mean_ms": 112,
+    "touch_events": false
+  }
+}

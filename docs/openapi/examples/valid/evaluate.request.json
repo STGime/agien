@@ -1,0 +1,20 @@
+{
+  "session_token": "sess_abc123",
+  "venue_id": "01926f8f-0000-0000-0000-000000000001",
+  "request": {
+    "ip": "203.0.113.7",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+    "headers": {
+      "accept-language": "en-GB,en;q=0.9",
+      "referer": "https://demo.agien.example/booking"
+    }
+  },
+  "booking": {
+    "cancellation_policy": "card_hold",
+    "booking_hash": "sha256:deadbeef"
+  },
+  "identity": {
+    "declared_agent": null,
+    "provider": null
+  }
+}

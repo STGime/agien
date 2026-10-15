@@ -65,6 +65,20 @@ jobs:
       - name: Test db
         run: cd apps/edge && DATABASE_URL=postgres://postgres:postgres@localhost:5432/agien deno test --allow-net --allow-read --allow-env db/
 
+  contract:
+    name: contract (OpenAPI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/contract
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -78,6 +92,8 @@ jobs:
           node-version: 22
       - uses: astral-sh/setup-uv@v5
       - name: Install JS deps
-        run: cd packages/beacon && npm ci
+        run: |
+          cd packages/beacon && npm ci
+          cd ../contract && npm ci
       - name: Lint
         run: make lint

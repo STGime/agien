@@ -1,0 +1,309 @@
+openapi: 3.1.0
+info:
+  title: Agien API
+  version: 0.0.0
+  description: |
+    Intent/automation evaluation for EU reservation and scheduling SaaS.
+    Sprint 0 v0 contract: deterministic rules-only scoring, no ML yet.
+  contact:
+    name: Agien
+    url: https://github.com/STGime/agien
+servers:
+  - url: https://newtek.eurobase.app
+    description: Eurobase project (fr-par)
+tags:
+  - name: evaluation
+    description: Real-time reservation-risk evaluation endpoints.
+paths:
+  /v1/evaluate:
+    post:
+      operationId: evaluateRequest
+      tags: [evaluation]
+      summary: Evaluate a booking request for automation risk
+      description: |
+        Returns a deterministic rules-only evaluation for a booking attempt.
+        Authenticated with a venue API key. Response is idempotent for the
+        same session token + booking hash within 60 seconds.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluateRequest"
+      responses:
+        "200":
+          description: Evaluation result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /v1/beacon:
+    post:
+      operationId: ingestBeacon
+      tags: [evaluation]
+      summary: Ingest a behavioural feature vector
+      description: |
+        Receives computed behavioural features for a browser session. No API
+        key is required; the caller is identified by the session token only.
+        Returns 204 No Content on success.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BeaconRequest"
+      responses:
+        "204":
+          description: Accepted, no content.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /v1/outcomes:
+    post:
+      operationId: reportOutcome
+      tags: [evaluation]
+      summary: Report the final outcome of an evaluation
+      description: |
+        Records whether a seated reservation was honoured, cancelled, forfeited
+        or a no-show. Authenticated with a venue API key.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutcomeRequest"
+      responses:
+        "204":
+          description: Recorded, no content.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      description: Venue API key, matched against api_keys.key_hash.
+  responses:
+    BadRequest:
+      description: Malformed or invalid request body.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Unauthorized:
+      description: Missing or unrecognised API key.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Forbidden:
+      description: API key is not valid for the requested venue.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: Unknown venue, session or evaluation.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Conflict:
+      description: Duplicate or conflicting resource.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    TooManyRequests:
+      description: Rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    InternalError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+  schemas:
+    EvaluateRequest:
+      type: object
+      additionalProperties: false
+      required: [venue_id, request, booking]
+      properties:
+        session_token:
+          type: string
+          description: Opaque browser-session token; hashed server-side.
+        venue_id:
+          type: string
+          format: uuid
+        request:
+          $ref: "#/components/schemas/OriginRequest"
+        booking:
+          $ref: "#/components/schemas/Booking"
+        identity:
+          $ref: "#/components/schemas/DeclaredIdentity"
+    OriginRequest:
+      type: object
+      additionalProperties: false
+      required: [ip, user_agent]
+      properties:
+        ip:
+          type: string
+          description: Client source address (IPv4 or IPv6).
+        user_agent:
+          type: string
+          description: Originating browser User-Agent header.
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Lower-cased header map (e.g. accept-language, referer).
+    Booking:
+      type: object
+      additionalProperties: false
+      required: [cancellation_policy]
+      properties:
+        cancellation_policy:
+          type: string
+          enum: [card_hold, none, free]
+        booking_hash:
+          type: string
+          description: Venue-computed idempotency hash for this booking.
+    DeclaredIdentity:
+      type: object
+      additionalProperties: false
+      properties:
+        declared_agent:
+          type: [string, "null"]
+          description: Self-declared agent token, if any (e.g. ChatGPT-User).
+        provider:
+          type: [string, "null"]
+          description: Publisher slug the agent token maps to.
+    EvaluateResponse:
+      type: object
+      additionalProperties: false
+      required:
+        [evaluation_id, p_agent, p_phantom, action, reasons, agent, policy_version, latency_ms]
+      properties:
+        evaluation_id:
+          type: string
+          format: uuid
+        p_agent:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Probability the request is an automated agent.
+        p_phantom:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Probability the request is a phantom/no-show booking.
+        action:
+          type: string
+          enum: [allow, step_up, deny]
+        reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reason"
+        agent:
+          $ref: "#/components/schemas/AgentInfo"
+        policy_version:
+          type: string
+          description: Rules/policy version that produced this evaluation.
+        latency_ms:
+          type: integer
+          minimum: 0
+          description: Server-side processing latency in milliseconds.
+    Reason:
+      type: object
+      additionalProperties: false
+      required: [code, weight]
+      properties:
+        code:
+          type: string
+        weight:
+          type: number
+        detail:
+          type: string
+    AgentInfo:
+      type: object
+      additionalProperties: false
+      required: [verified]
+      properties:
+        verified:
+          type: boolean
+          description: Whether the declared identity was cryptographically or IP-range verified.
+        provider:
+          type: [string, "null"]
+          description: Publisher slug when identified.
+        method:
+          type: [string, "null"]
+          description: Verification method (ip_list or web_bot_auth).
+    BeaconRequest:
+      type: object
+      additionalProperties: false
+      required: [session_token, feature_vector]
+      properties:
+        session_token:
+          type: string
+        feature_vector:
+          type: object
+          additionalProperties: true
+          description: Computed behavioural features. Never raw field values.
+    OutcomeRequest:
+      type: object
+      additionalProperties: false
+      required: [evaluation_id, status]
+      properties:
+        evaluation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [seated, no_show, cancelled, forfeited]
+        reported_at:
+          type: string
+          format: date-time
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string

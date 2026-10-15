@@ -1,0 +1,10 @@
+{
+  "evaluation_id": "01926f8f-0000-0000-0000-000000000002",
+  "p_agent": 1.5,
+  "p_phantom": 0.71,
+  "action": "allow_all",
+  "reasons": [],
+  "agent": { "verified": true },
+  "policy_version": "v0",
+  "latency_ms": 12
+}

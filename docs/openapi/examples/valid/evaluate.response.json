@@ -1,0 +1,13 @@
+{
+  "evaluation_id": "01926f8f-0000-0000-0000-000000000002",
+  "p_agent": 0.91,
+  "p_phantom": 0.71,
+  "action": "step_up",
+  "reasons": [
+    { "code": "verified_declared_identity", "weight": 0.95 },
+    { "code": "no_beacon_session", "weight": 0.3, "detail": "no beacon seen in the last 10 minutes" }
+  ],
+  "agent": { "verified": true, "provider": "openai", "method": "ip_list" },
+  "policy_version": "v0",
+  "latency_ms": 12
+}
