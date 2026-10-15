@@ -1,0 +1,5 @@
+extends:
+  - recommended
+rules:
+  # Private, unlicensed API — no public license field to describe.
+  info-license: off
