@@ -10,6 +10,8 @@
     }
   },
   "imports": {
-    "@db/postgres": "jsr:@db/postgres@^0.19.5"
+    "@db/postgres": "jsr:@db/postgres@^0.19.5",
+    "@eurobase/sdk": "npm:@eurobase/sdk@0.9.0",
+    "@std/yaml": "jsr:@std/yaml@^1.0.0"
   }
 }

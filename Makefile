@@ -14,7 +14,7 @@ test:
 	exit $$err
 
 test-edge:
-	cd apps/edge && $(DENO) test
+	cd apps/edge && $(DENO) test --allow-read --allow-net
 
 test-js:
 	cd packages/beacon && npm test
