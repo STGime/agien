@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS outcomes (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   evaluation_id uuid NOT NULL REFERENCES evaluations(id),
   venue_id uuid NOT NULL REFERENCES venues(id),
   status text NOT NULL CHECK (status IN ('seated', 'no_show', 'cancelled', 'forfeited')),
@@ -10,5 +10,5 @@ ALTER TABLE outcomes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS outcomes_venue ON outcomes;
 CREATE POLICY outcomes_venue ON outcomes FOR ALL
-  USING (public.is_service_role() OR venue_id = public.current_venue_id())
-  WITH CHECK (public.is_service_role() OR venue_id = public.current_venue_id());
+  USING (is_service_role() OR venue_id = current_venue_id())
+  WITH CHECK (is_service_role() OR venue_id = current_venue_id());

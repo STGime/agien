@@ -83,6 +83,13 @@ make test-db    # migrations + RLS tests against local Postgres
 Docker daemon access. In CI the `db` job provides Postgres as a service
 container, so the same tests run on every PR without a local database.
 
+The same migrations are applied to the Eurobase `newtek` project via the MCP
+`runSQLTransaction` (each statement its own array element). They are portable:
+UUID defaults use `gen_random_uuid()` (PostgreSQL 13+ core, no extension),
+seed API keys are precomputed SHA-256 hex digests, and `is_service_role()` is
+referenced unqualified so it resolves to the platform-shipped function on
+Eurobase (it is redefined only for local Postgres, which lacks it).
+
 ## Evaluate function
 
 `apps/edge/functions/evaluate/` implements `POST /v1/evaluate`:
@@ -107,9 +114,10 @@ Run the tests with `make test-edge`; the latency test asserts p99 < 15 ms over
 
 ### Deploying (pending)
 
-Deployment to the Eurobase `newtek` project requires the `eurobase` CLI plus
-explicit approval (the `newtek` project does not yet carry the Agien schema).
-Once deployed, the function is exercised with:
+The Agien schema (migrations 0000–0005 + seed) is applied to the `newtek`
+project via the Eurobase MCP. Deploying the function itself still requires the
+`eurobase` CLI or console — the MCP can list/invoke functions but not deploy
+them. Once deployed, the function is exercised with:
 
 ```bash
 curl -sS https://newtek.eurobase.app/functions/v1/evaluate \

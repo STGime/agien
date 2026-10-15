@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS evaluations (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   venue_id uuid NOT NULL REFERENCES venues(id),
   session_token_hash text,
   p_agent double precision NOT NULL,
@@ -15,5 +15,5 @@ ALTER TABLE evaluations ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS evaluations_venue ON evaluations;
 CREATE POLICY evaluations_venue ON evaluations FOR ALL
-  USING (public.is_service_role() OR venue_id = public.current_venue_id())
-  WITH CHECK (public.is_service_role() OR venue_id = public.current_venue_id());
+  USING (is_service_role() OR venue_id = current_venue_id())
+  WITH CHECK (is_service_role() OR venue_id = current_venue_id());
