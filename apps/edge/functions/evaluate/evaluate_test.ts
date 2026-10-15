@@ -234,7 +234,7 @@ function apiKeyRow(venueId: string, revoked = false): Record<string, unknown> {
 
 function postRequest(body: unknown, token?: string): Request {
   const headers: Record<string, string> = { "content-type": "application/json" };
-  if (token !== undefined) headers.authorization = `Bearer ${token}`;
+  if (token !== undefined) headers["x-api-key"] = token;
   return new Request("https://newtek.eurobase.app/v1/evaluate", {
     method: "POST",
     headers,

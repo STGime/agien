@@ -102,9 +102,9 @@ Eurobase (it is redefined only for local Postgres, which lacks it).
   `p_agent` by `cancellation_policy` and is clamped to `[0,1]`; actions map
   `< 0.3 allow`, `0.3–0.7 step_up`, `> 0.7 deny`. Fail-safe returns
   `allow` + `agien_internal_error` on any internal error.
-- `http.ts` — auth (bearer key → `api_keys.key_hash`), request validation,
-  venue scoping, and the orchestration pipeline (`handleRequest`), testable
-  against a fake `db.sql`.
+- `http.ts` — auth (venue key in `x-api-key` → `api_keys.key_hash`), request
+  validation, venue scoping, and the orchestration pipeline (`handleRequest`),
+  testable against a fake `db.sql`.
 - `index.ts` — the deployed `EdgeHandler`, adapting the Eurobase `ctx` surface.
 - `datacenter.ts` — static v0 datacenter CIDR allowlist (MaxMind pending).
 - `contract.ts` — validates responses against `docs/openapi/agien-v0.yaml`.
@@ -112,16 +112,28 @@ Eurobase (it is redefined only for local Postgres, which lacks it).
 Run the tests with `make test-edge`; the latency test asserts p99 < 15 ms over
 1,000 sequential calls with the database mocked.
 
-### Deploying (pending)
+### Deployed
 
-The Agien schema (migrations 0000–0005 + seed) is applied to the `newtek`
-project via the Eurobase MCP. Deploying the function itself still requires the
-`eurobase` CLI or console — the MCP can list/invoke functions but not deploy
-them. Once deployed, the function is exercised with:
+The Agien schema and both functions are live in the `newtek` project. Deploy
+uses the platform API (`PUT /{name}` to update, `POST /` to create), with the
+function bundled to a single file via `deno bundle`:
 
 ```bash
-curl -sS https://newtek.eurobase.app/functions/v1/evaluate \
-  -H "Authorization: Bearer sk_test_ven_test_a" \
+deno bundle apps/edge/functions/evaluate/index.ts -o /tmp/evaluate.bundle.js
+jq -n --rawfile code /tmp/evaluate.bundle.js '{code: $code, verify_jwt: false}' \
+  | curl -sS -X PUT "https://api.eurobase.app/platform/projects/93df6379-8b4c-4056-8e61-647bffd9aa7c/functions/evaluate" \
+      -H "Authorization: Bearer $EUROBASE_NEWTEK_PAT" -H "Content-Type: application/json" --data-binary @-
+```
+
+Invocation needs two headers: the Eurobase project key (`apikey`) for the
+gateway, and the venue key (`x-api-key`) which the function hashes against
+`api_keys.key_hash`. (`x-api-key` rather than `Authorization: Bearer` because
+the Eurobase gateway reserves `Authorization: Bearer` for end-user JWTs.)
+
+```bash
+curl -sS https://newtek.eurobase.app/v1/functions/evaluate \
+  -H "apikey: $EUROBASE_API_KEY" \
+  -H "x-api-key: sk_test_ven_test_a" \
   -H "Content-Type: application/json" \
   -d '{"venue_id":"<venue-uuid>","request":{"ip":"203.0.113.7","user_agent":"Mozilla/5.0","headers":{"accept-language":"en"}},"booking":{"cancellation_policy":"card_hold"}}'
 ```
@@ -135,8 +147,9 @@ expired `sessions`. Each table is purged independently; a failure on one is
 logged and zeroed rather than crashing the run. The result (cutoff + per-table
 counts) is returned for audit.
 
-Run the tests with `make test-edge`. Deployment and the cron schedule are
-pending the same Eurobase CLI + approval as the evaluate function; the schedule
-is declared with `eb.functions.schedules.createOrUpdate(...)` once deployed.
+Run the tests with `make test-edge`. The function is deployed to `newtek`; the
+cron schedule is declared once deployed with
+`eb.functions.schedules.createOrUpdate("purge", { functionName: "purge",
+cron: "0 4 * * *", timezone: "UTC" })` (requires an `eb_sk_*` secret key).
 
 See `CONTRIBUTING.md` for the TDD (red-first) workflow and branch naming.

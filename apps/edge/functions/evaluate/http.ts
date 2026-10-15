@@ -109,11 +109,10 @@ function errorResponse(status: number, code: string, message: string): Response 
   return Response.json({ error: { code, message } }, { status });
 }
 
-function bearerToken(req: Request): string | null {
-  const auth = req.headers.get("authorization");
-  if (!auth || !auth.startsWith("Bearer ")) return null;
-  const token = auth.slice("Bearer ".length).trim();
-  return token === "" ? null : token;
+function apiKeyToken(req: Request): string | null {
+  const key = req.headers.get("x-api-key");
+  if (!key || key.trim() === "") return null;
+  return key.trim();
 }
 
 const defaultCache: IdempotencyCache = (() => {
@@ -132,9 +131,9 @@ export async function handleRequest(
   const clock = deps.clock ?? (() => Date.now());
 
   // --- auth ---
-  const token = bearerToken(req);
+  const token = apiKeyToken(req);
   if (!token) {
-    return errorResponse(401, "missing_api_key", "Authorization: Bearer <api key> is required");
+    return errorResponse(401, "missing_api_key", "x-api-key header is required");
   }
   const keyHash = await sha256Hex(token);
   const keyRows = await ctx.db.sql<{ venue_id: string; revoked_at: string | null }>(

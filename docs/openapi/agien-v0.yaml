@@ -107,8 +107,9 @@ paths:
 components:
   securitySchemes:
     ApiKeyAuth:
-      type: http
-      scheme: bearer
+      type: apiKey
+      in: header
+      name: x-api-key
       description: Venue API key, matched against api_keys.key_hash.
   responses:
     BadRequest:
