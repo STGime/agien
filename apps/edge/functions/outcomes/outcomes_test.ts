@@ -91,7 +91,7 @@ Deno.test("outcome: evaluation of another venue returns 403", async () => {
   assertEquals(resp.status, 403);
 });
 
-Deno.test("outcome: valid request inserts the row and returns 204", async () => {
+Deno.test("outcome: valid request inserts the row and returns 200", async () => {
   let inserted = false;
   const ctx = ctxWith(
     { "FROM api_keys": [apiKeyRow(VENUE_A)], "FROM evaluations": [{ venue_id: VENUE_A }] },
@@ -103,6 +103,7 @@ Deno.test("outcome: valid request inserts the row and returns 204", async () => 
     postRequest({ evaluation_id: EVAL_ID, status: "no_show" }, "sk_a"),
     ctx,
   );
-  assertEquals(resp.status, 204);
+  assertEquals(resp.status, 200);
   assertEquals(inserted, true);
+  assertEquals((await resp.json()) as { recorded: boolean }, { recorded: true });
 });

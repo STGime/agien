@@ -61,7 +61,7 @@ paths:
       description: |
         Receives computed behavioural features for a browser session. No API
         key is required; the caller is identified by the session token only.
-        Returns 204 No Content on success.
+        Returns 200 with a JSON acknowledgement on success.
       security: []
       requestBody:
         required: true
@@ -70,8 +70,16 @@ paths:
             schema:
               $ref: "#/components/schemas/BeaconRequest"
       responses:
-        "204":
-          description: Accepted, no content.
+        "200":
+          description: Accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                required: [accepted]
         "400":
           $ref: "#/components/responses/BadRequest"
         "429":
@@ -93,8 +101,16 @@ paths:
             schema:
               $ref: "#/components/schemas/OutcomeRequest"
       responses:
-        "204":
-          description: Recorded, no content.
+        "200":
+          description: Recorded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recorded:
+                    type: boolean
+                required: [recorded]
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

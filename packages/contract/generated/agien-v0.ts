@@ -39,7 +39,7 @@ export interface paths {
          * Ingest a behavioural feature vector
          * @description Receives computed behavioural features for a browser session. No API
          *     key is required; the caller is identified by the session token only.
-         *     Returns 204 No Content on success.
+         *     Returns 200 with a JSON acknowledgement on success.
          */
         post: operations["ingestBeacon"];
         delete?: never;
@@ -271,12 +271,16 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Accepted, no content. */
-            204: {
+            /** @description Accepted. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        accepted: boolean;
+                    };
+                };
             };
             400: components["responses"]["BadRequest"];
             429: components["responses"]["TooManyRequests"];
@@ -295,12 +299,16 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Recorded, no content. */
-            204: {
+            /** @description Recorded. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        recorded: boolean;
+                    };
+                };
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
