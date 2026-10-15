@@ -118,4 +118,17 @@ curl -sS https://newtek.eurobase.app/functions/v1/evaluate \
   -d '{"venue_id":"<venue-uuid>","request":{"ip":"203.0.113.7","user_agent":"Mozilla/5.0","headers":{"accept-language":"en"}},"booking":{"cancellation_policy":"card_hold"}}'
 ```
 
+## Retention purge
+
+`apps/edge/functions/purge/` is a scheduled job that deletes rows past the
+approved retention window: `evaluations` / `outcomes` older than the cutoff
+(default 30 days, placeholder pending the Legal retention schedule in #14) and
+expired `sessions`. Each table is purged independently; a failure on one is
+logged and zeroed rather than crashing the run. The result (cutoff + per-table
+counts) is returned for audit.
+
+Run the tests with `make test-edge`. Deployment and the cron schedule are
+pending the same Eurobase CLI + approval as the evaluate function; the schedule
+is declared with `eb.functions.schedules.createOrUpdate(...)` once deployed.
+
 See `CONTRIBUTING.md` for the TDD (red-first) workflow and branch naming.
