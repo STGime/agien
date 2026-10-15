@@ -8,6 +8,51 @@ Implement secure, observable, low-latency backend primitives for intent/automati
 - Agree with Data and ML agents on a versioned feature schema and request/response contract before locking interfaces.
 - Treat p99 < 50 ms as a target to measure under a documented workload, not a claim to make without evidence.
 
+## Eurobase operations (MCP + function deploy)
+
+### Schema migrations via MCP
+
+- Use `runSQLTransaction` — pass each statement as its own array element; it
+  runs in one transaction and rolls everything back on any failure. `runSQL`
+  runs a SINGLE statement only (multi-statement input is rejected). `createTable`
+  is fine for simple tables (no FK/UNIQUE/CHECK constraints).
+- Statements the MCP refuses: `uuid_generate_v4()` (use `gen_random_uuid()`,
+  core PostgreSQL 13+, no extension); `SECURITY DEFINER` functions (use plain
+  functions + RLS, or edge functions); anything `pg_`-prefixed (catalog); any
+  write to system tables; `DO $$ … $$` blocks.
+- The platform ships `public.is_service_role()` (returns true for the
+  service/DDL role and for edge-function `ctx.db.sql`). Reference it UNQUALIFIED
+  and do NOT redefine it — redefining shadows it in `search_path` and breaks the
+  service-role RLS bypass. The tenant schema is a per-project schema, separate
+  from `public`.
+- Migrations must be idempotent: `CREATE TABLE IF NOT EXISTS`, `DROP POLICY IF
+  EXISTS`, `CREATE OR REPLACE FUNCTION`, `ON CONFLICT … DO NOTHING` on seeds.
+- Precompute seed hashes (e.g. SHA-256 of test keys) instead of relying on
+  `pgcrypto`/`digest`; store keys as hex digests, never plaintext.
+
+### Deploying edge functions via curl
+
+- Endpoint: `https://api.eurobase.app/platform/projects/<projectId>/functions`.
+  `PUT /{name}` updates, `POST /` creates. Auth: `Authorization: Bearer <PAT>`
+  (the same management PAT the MCP uses, e.g. `$EUROBASE_NEWTEK_PAT`). Body:
+  `{code, verify_jwt}` (+ `name` on POST).
+- `verify_jwt` is a boolean: `false` for public/API-key routes, `true` only when
+  the route needs the end-user JWT (`ctx.user`).
+- Bundle multi-file functions to one self-contained file first:
+  `deno bundle entry.ts -o out.js` (inlines relative imports and `import … with
+  { type: "json" }` fixtures). The platform runs a single `code` string; relative
+  imports to other files will not resolve. `@eurobase/sdk/functions` is
+  types-only and elides cleanly.
+- Invocation URL: `https://<project>.eurobase.app/v1/functions/<name>`.
+
+### Function invocation auth (two-layered)
+
+- The gateway requires the PROJECT key in the lowercase `apikey` header.
+- `Authorization: Bearer` is reserved for end-user JWTs — a non-JWT value there
+  is rejected with "invalid or expired token".
+- App-level keys (e.g. per-venue keys checked against `api_keys.key_hash`) go in
+  a custom header such as `x-api-key`, never `Authorization`.
+
 ## Deliverables
 1. `evaluate` Edge Function with validated inputs, explicit response schema, rule/version metadata, and safe fallback behavior.
 2. `beacon` Edge Function with strict payload validation, size/rate limits, abuse controls, and minimal data collection.
