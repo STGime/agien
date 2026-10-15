@@ -83,4 +83,39 @@ make test-db    # migrations + RLS tests against local Postgres
 Docker daemon access. In CI the `db` job provides Postgres as a service
 container, so the same tests run on every PR without a local database.
 
+## Evaluate function
+
+`apps/edge/functions/evaluate/` implements `POST /v1/evaluate`:
+
+- `mod.ts` — pure rules engine (`score`, `actionFor`, `evaluate`) with injected
+  db / cache / clock / identity / beacon resolvers, so it is unit-tested without
+  the Eurobase runtime. Rules v0: verified declared identity (floor 0.95),
+  spoofed publisher UA (floor 0.9), datacenter ASN (+0.4), no beacon session
+  (+0.3), missing Accept-Language / Referer (+0.1 each). `p_phantom` adjusts
+  `p_agent` by `cancellation_policy` and is clamped to `[0,1]`; actions map
+  `< 0.3 allow`, `0.3–0.7 step_up`, `> 0.7 deny`. Fail-safe returns
+  `allow` + `agien_internal_error` on any internal error.
+- `http.ts` — auth (bearer key → `api_keys.key_hash`), request validation,
+  venue scoping, and the orchestration pipeline (`handleRequest`), testable
+  against a fake `db.sql`.
+- `index.ts` — the deployed `EdgeHandler`, adapting the Eurobase `ctx` surface.
+- `datacenter.ts` — static v0 datacenter CIDR allowlist (MaxMind pending).
+- `contract.ts` — validates responses against `docs/openapi/agien-v0.yaml`.
+
+Run the tests with `make test-edge`; the latency test asserts p99 < 15 ms over
+1,000 sequential calls with the database mocked.
+
+### Deploying (pending)
+
+Deployment to the Eurobase `newtek` project requires the `eurobase` CLI plus
+explicit approval (the `newtek` project does not yet carry the Agien schema).
+Once deployed, the function is exercised with:
+
+```bash
+curl -sS https://newtek.eurobase.app/functions/v1/evaluate \
+  -H "Authorization: Bearer sk_test_ven_test_a" \
+  -H "Content-Type: application/json" \
+  -d '{"venue_id":"<venue-uuid>","request":{"ip":"203.0.113.7","user_agent":"Mozilla/5.0","headers":{"accept-language":"en"}},"booking":{"cancellation_policy":"card_hold"}}'
+```
+
 See `CONTRIBUTING.md` for the TDD (red-first) workflow and branch naming.
