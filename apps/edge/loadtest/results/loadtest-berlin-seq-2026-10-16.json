@@ -1,0 +1,33 @@
+{
+  "location": "berlin-seq",
+  "url": "https://newtek.eurobase.app/v1/functions/evaluate",
+  "concurrency": 1,
+  "requests": 30,
+  "warmup": 0,
+  "test_date": "2026-10-16T08:02:49.497Z",
+  "cold_start_ms": 5699.167732,
+  "total": {
+    "count": 30,
+    "min": 178.59036900000137,
+    "max": 496.255819,
+    "mean": 266.5311293,
+    "p50": 248.831365,
+    "p95": 364.70154,
+    "p99": 496.255819
+  },
+  "server": {
+    "count": 30,
+    "min": 0,
+    "max": 41,
+    "mean": 8.566666666666666,
+    "p50": 1,
+    "p95": 41,
+    "p99": 41
+  },
+  "throughput_rps": 3.7513545761549842,
+  "error_rate": 0,
+  "status_counts": {
+    "200": 30
+  },
+  "error_codes": {}
+}
