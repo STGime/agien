@@ -222,6 +222,32 @@ cd ml && uv run pytest tests/test_corpus_schema.py tests/test_generators.py
 Determinism: same `--seed` → byte-identical events. Minimums: ≥200 per synthetic
 label; human ≥30 (collection is a manual step via the recorder).
 
+## Beacon library (#8)
+
+`packages/beacon/` is `agien.js` — the behavioural telemetry snippet from PDD
+3.2. It observes a booking form and posts a compact feature vector to
+`/v1/beacon`. Zero runtime dependencies, built with esbuild to an IIFE
+(`dist/agien.iife.js`, global `Agien`) and an ESM build.
+
+```js
+const { sessionToken } = Agien.init({
+  venueId: "ven_demo",
+  endpoint: "https://newtek.eurobase.app/v1/functions/beacon",
+  form: document.getElementById("booking-form"),
+});
+```
+
+Captured features: `t_load_to_first_input`, `t_first_input_to_submit`,
+per-field `focus_order` vs DOM order, per-field `dwell_ms`, `keystroke_count`,
+`keystroke_interval_std_ms`, `paste_count`, `pointer_event_count`,
+`pointer_path_length_px`, `pointer_straightness` (0–1), `scroll_event_count`,
+`viewport`, `screen`, `webdriver`, `visibility_changes`.
+
+Privacy by construction: no field values, no key codes, no
+canvas/WebGL/audio fingerprinting (enforced by tests). Fails silent — the
+beacon never blocks the host form. Test with `npm test` in `packages/beacon`
+(23 tests incl. a gzipped-bundle budget of ≤ 8 KB; the IIFE is ~1.5 KB).
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the
