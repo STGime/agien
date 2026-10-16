@@ -15,7 +15,7 @@ const MIGRATIONS = new URL("../migrations/", import.meta.url);
 
 async function resetSchema(client: Client): Promise<void> {
   await client.queryObject(
-    "DROP TABLE IF EXISTS outcomes, evaluations, sessions, api_keys, venues CASCADE",
+    "DROP TABLE IF EXISTS beacons, outcomes, evaluations, sessions, api_keys, venues CASCADE",
   );
 }
 
@@ -37,9 +37,9 @@ Deno.test({
     try {
       await resetSchema(client);
       const first = await runMigrations(client, MIGRATIONS);
-      assertEquals(first.length, 6);
+      assertEquals(first.length, 7);
       const second = await runMigrations(client, MIGRATIONS);
-      assertEquals(second.length, 6);
+      assertEquals(second.length, 7);
     } finally {
       await client.end();
     }
