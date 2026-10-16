@@ -2,7 +2,7 @@ SHELL := /bin/bash
 DENO  ?= deno
 DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/agien
 
-.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset loadtest
+.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset loadtest demo-up
 
 ## Run all test suites; exits non-zero if any one fails.
 test:
@@ -57,3 +57,7 @@ loadtest:
 		--location $(or $(LOCATION),unknown) --venue-id $(VENUE_ID) \
 		--venue-key $(VENUE_KEY) --concurrency $(or $(CONCURRENCY),10) \
 		--requests $(or $(REQUESTS),500)
+
+## Run the demo booking site locally (serves static + proxies /api/* to newtek).
+demo-up:
+	cd apps/demo-site && $(DENO) run --allow-net --allow-read --allow-env server.ts

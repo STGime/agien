@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo Restaurant — book a table</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Demo Restaurant</h1>
+      <p class="lede">Book a table. This is a test fixture for the Agien intent/automation corpus.</p>
+
+      <form id="booking-form" novalidate>
+        <div class="field">
+          <label for="date">Date</label>
+          <input type="date" id="date" name="date" required />
+        </div>
+
+        <fieldset>
+          <legend>Time</legend>
+          <div id="slots" class="slots" role="radiogroup" aria-label="Available times">
+            <p class="muted">Loading availability…</p>
+          </div>
+        </fieldset>
+
+        <div class="grid">
+          <div class="field">
+            <label for="party_size">Party size</label>
+            <input type="number" id="party_size" name="party_size" min="1" max="12" value="2" required />
+          </div>
+          <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" autocomplete="name" required />
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="3"></textarea>
+        </div>
+
+        <button type="submit" id="submit">Book table</button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </form>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
