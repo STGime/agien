@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { handleRequest, sha256Hex, type HttpContext, type SqlQuery } from "./http.ts";
+import { handleRequest, type HttpContext, sha256Hex, type SqlQuery } from "./http.ts";
 
 type Rows = Record<string, unknown>[];
 type Call = { query: string; params: unknown[] };
@@ -21,8 +21,10 @@ Deno.test("session: mints a token and stores only its sha256 hash", async () => 
   const calls: Call[] = [];
   const ctx: HttpContext = {
     db: {
-      sql: fakeSql({ "FROM venues": [{ id: "venue-demo-1" }] }, (q, p) =>
-        calls.push({ query: q, params: p })),
+      sql: fakeSql(
+        { "FROM venues": [{ id: "venue-demo-1" }] },
+        (q, p) => calls.push({ query: q, params: p }),
+      ),
     },
   };
   const resp = await handleRequest(

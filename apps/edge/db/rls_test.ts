@@ -15,7 +15,7 @@ const MIGRATIONS = new URL("../migrations/", import.meta.url);
 
 async function resetSchema(client: Client): Promise<void> {
   await client.queryObject(
-    "DROP TABLE IF EXISTS beacons, outcomes, evaluations, sessions, api_keys, venues CASCADE",
+    "DROP TABLE IF EXISTS demo_bookings, demo_slots, beacons, outcomes, evaluations, sessions, api_keys, venues CASCADE",
   );
 }
 

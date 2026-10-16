@@ -44,7 +44,13 @@ Deno.test("slots: sold-out slot is available:false, normal slot available:true",
     "FROM venues": [{ id: "v1" }],
     "FROM demo_slots": [
       { ...SLOT_BASE, id: "s-normal", start_time: "12:00:00", slot_date: "2026-10-20" },
-      { ...SLOT_BASE, id: "s-sold", start_time: "21:00:00", slot_date: "2026-10-20", sold_out: true },
+      {
+        ...SLOT_BASE,
+        id: "s-sold",
+        start_time: "21:00:00",
+        slot_date: "2026-10-20",
+        sold_out: true,
+      },
     ],
   });
   const resp = await handleRequest(
@@ -91,7 +97,13 @@ Deno.test("slots: booked slot is available:false", async () => {
   const ctx = ctxWith({
     "FROM venues": [{ id: "v1" }],
     "FROM demo_slots": [
-      { ...SLOT_BASE, id: "s-booked", start_time: "12:00:00", slot_date: "2026-10-20", booked: true },
+      {
+        ...SLOT_BASE,
+        id: "s-booked",
+        start_time: "12:00:00",
+        slot_date: "2026-10-20",
+        booked: true,
+      },
     ],
   });
   const resp = await handleRequest(
