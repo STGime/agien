@@ -18,6 +18,7 @@ test-edge:
 
 test-js:
 	cd packages/beacon && npm test
+	cd apps/dashboard && npm test
 
 test-ml:
 	cd ml && uv run pytest -q
@@ -36,6 +37,7 @@ lint-edge:
 
 lint-js:
 	cd packages/beacon && npm run lint
+	cd apps/dashboard && npm run lint
 
 lint-contract:
 	cd packages/contract && npm run lint

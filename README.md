@@ -248,6 +248,31 @@ canvas/WebGL/audio fingerprinting (enforced by tests). Fails silent — the
 beacon never blocks the host form. Test with `npm test` in `packages/beacon`
 (23 tests incl. a gzipped-bundle budget of ≤ 8 KB; the IIFE is ~1.5 KB).
 
+## Dashboard (#9)
+
+`apps/dashboard/` is the pilot venue-facing UI (React + Vite + TypeScript, no
+component library). Magic-link login, a venue switcher, and a live-updating
+evaluations table (time, `p_agent`, `p_phantom`, action, top-3 reason codes).
+
+```bash
+cd apps/dashboard && npm install
+npm test                 # Vitest + Testing Library (component, hook, axe)
+npm run dev              # dev server on :5173 (needs VITE_EUROBASE_* env)
+npm run e2e              # Playwright e2e (mock client; auto-starts Vite)
+```
+
+Tests: `EvaluationsTable` (2-decimal probabilities, action badges, reason
+truncation +n), `useEvaluations` (venue-filtered query + client-side realtime
+filter), axe-core (zero serious/critical), and 3 Playwright e2e specs (login →
+venue isolation → live insert → axe).
+
+Integration blockers (Sprint 1): there is no user→venue membership table, so
+the venue switcher lists all venues the RLS policy permits; the SDK's
+`realtime.on()` has no server-side row filter, so inserts are filtered
+client-side by `venue_id`; and the e2e uses an in-browser mock client because
+real magic-link login needs a seeded auth user + email inbox and JWT→venue_id
+RLS wiring, none of which exist yet.
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the
