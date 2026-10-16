@@ -1,0 +1,12 @@
+{
+  "url": "http://localhost:8000/",
+  "fetchTime": "2026-10-16T08:46:17.196Z",
+  "categories": {
+    "performance": {
+      "score": 100
+    },
+    "accessibility": {
+      "score": 100
+    }
+  }
+}
