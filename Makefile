@@ -2,7 +2,7 @@ SHELL := /bin/bash
 DENO  ?= deno
 DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/agien
 
-.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset loadtest demo-up
+.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset loadtest demo-up corpus
 
 ## Run all test suites; exits non-zero if any one fails.
 test:
@@ -21,6 +21,9 @@ test-js:
 
 test-ml:
 	cd ml && uv run pytest -q
+
+corpus:
+	cd ml && uv run python -m corpus.generate --seed 1 --n 200 --skip-browser-use --out-dir corpus/data
 
 test-contract:
 	cd packages/contract && npm test

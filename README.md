@@ -199,6 +199,29 @@ The `demo_slots` / `demo_bookings` schema is `migrations/0007_demo.sql` (applied
 to `newtek`). `apps/demo-site/server.ts` proxies `/api/*` to the deployed
 functions so the page never sees the Eurobase project key.
 
+## Labelled corpus (#7)
+
+`ml/corpus/` generates the deterministic, seeded, labelled dataset the ML agent
+trains on. One JSONL record per session: `session_id`, `label`
+(`human|playwright|browser_use|raw_http|llm_agent`), `generator_version`,
+`request`, `events[]` (type, t_ms, field name, optional x/y), `booking`, and
+`outcome`. Form field VALUES are never stored — only field names — and the
+privacy test injects canary strings to prove it.
+
+Generators: `raw_http` (direct POST, no page), `poller` (400 ms slot polling),
+`playwright_fill` (instant `page.fill()`), `playwright_humanlike` (typing jitter
+and mouse paths — the hard negative), `browser_use` (optional; skipped in CI with
+a `SKIPPED` marker), `human_replay` (replays recorded team sessions — see
+`ml/corpus/recorder.py`).
+
+```bash
+make corpus            # build corpus_v0.jsonl.gz + manifest.json (seed 1, n=200/synthetic)
+cd ml && uv run pytest tests/test_corpus_schema.py tests/test_generators.py
+```
+
+Determinism: same `--seed` → byte-identical events. Minimums: ≥200 per synthetic
+label; human ≥30 (collection is a manual step via the recorder).
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the

@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agien.example/ml/corpus/schema.json",
+  "title": "CorpusRecord",
+  "description": "One labelled session record for intent/automation model training.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "session_id",
+    "label",
+    "generator_version",
+    "request",
+    "events",
+    "booking",
+    "outcome"
+  ],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "label": {
+      "type": "string",
+      "enum": ["human", "playwright", "browser_use", "raw_http", "llm_agent"]
+    },
+    "generator_version": {
+      "type": "string",
+      "description": "Semver of the generator that produced this record."
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["headers", "ip"],
+      "properties": {
+        "headers": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Lower-cased header map of the originating request."
+        },
+        "ip": {
+          "type": "string"
+        },
+        "http2": {
+          "type": "boolean"
+        },
+        "tls_fingerprint": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "t_ms"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Event kind: mousemove, click, keydown, focus, submit, http, poll, fill, scroll, ..."
+          },
+          "t_ms": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Milliseconds since the start of the session."
+          },
+          "field": {
+            "type": ["string", "null"],
+            "description": "Form field the event targeted, if any (field NAME, never its value)."
+          },
+          "x": { "type": ["number", "null"] },
+          "y": { "type": ["number", "null"] }
+        }
+      }
+    },
+    "booking": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "slot_id": { "type": "string", "format": "uuid" },
+        "party_size": { "type": "integer", "minimum": 1 },
+        "status": { "type": "string", "enum": ["booked", "cancelled"] }
+      },
+      "required": ["slot_id", "party_size", "status"]
+    },
+    "outcome": {
+      "type": "null",
+      "description": "Reserved for ground-truth booking outcome (#14 retention schedule pending)."
+    }
+  }
+}
