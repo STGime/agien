@@ -157,6 +157,25 @@ curl -sS https://newtek.eurobase.app/v1/functions/evaluate \
 
 Run the tests with `make test-edge`.
 
+## Load testing
+
+`apps/edge/loadtest/` is a repeatable harness for the deployed `/v1/evaluate`
+function. `run.ts` drives a fixed, documented workload mix (60% residential
+browser, 20% datacenter, 20% session-token) at a configurable concurrency, and
+records both the client-observed round-trip time and the server-reported
+`latency_ms` so client/network latency can be separated from server processing.
+Cold start (first request) is reported separately. `stats.ts` holds the pure
+percentile/summary functions (unit-tested by `stats_test.ts`).
+
+```bash
+make loadtest LOCATION=berlin VENUE_ID=<uuid> VENUE_KEY=sk_test_ven_test_a \
+  CONCURRENCY=10 REQUESTS=500
+# → writes loadtest-<location>.json + a one-line summary to stdout
+```
+
+Results are committed under `apps/edge/loadtest/results/` with the test date,
+region/configuration, and workload shape captured in the JSON.
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the

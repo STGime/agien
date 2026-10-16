@@ -2,7 +2,7 @@ SHELL := /bin/bash
 DENO  ?= deno
 DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/agien
 
-.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset
+.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset loadtest
 
 ## Run all test suites; exits non-zero if any one fails.
 test:
@@ -49,3 +49,11 @@ db-reset: db-up
 
 test-db:
 	cd apps/edge && DATABASE_URL=$(DATABASE_URL) $(DENO) test --allow-net --allow-read --allow-env db/
+
+## Load-test the deployed /v1/evaluate function. Requires EUROBASE_API_KEY (and
+## VENUE_API_KEY or --venue-key) + --venue-id. See apps/edge/loadtest/run.ts.
+loadtest:
+	$(DENO) run --allow-net --allow-env --allow-write apps/edge/loadtest/run.ts \
+		--location $(or $(LOCATION),unknown) --venue-id $(VENUE_ID) \
+		--venue-key $(VENUE_KEY) --concurrency $(or $(CONCURRENCY),10) \
+		--requests $(or $(REQUESTS),500)

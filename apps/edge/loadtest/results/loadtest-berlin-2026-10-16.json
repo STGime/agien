@@ -1,0 +1,33 @@
+{
+  "location": "berlin",
+  "url": "https://newtek.eurobase.app/v1/functions/evaluate",
+  "concurrency": 10,
+  "requests": 500,
+  "warmup": 5,
+  "test_date": "2026-10-16T07:56:43.749Z",
+  "cold_start_ms": 5436.785225,
+  "total": {
+    "count": 500,
+    "min": 207.92441600000166,
+    "max": 1556.6663689999996,
+    "mean": 657.03718215,
+    "p50": 623.2372869999963,
+    "p95": 1170.1047050000016,
+    "p99": 1472.8494959999998
+  },
+  "server": {
+    "count": 500,
+    "min": 0,
+    "max": 630,
+    "mean": 48.258,
+    "p50": 1,
+    "p95": 306,
+    "p99": 454
+  },
+  "throughput_rps": 15.146808274417959,
+  "error_rate": 0,
+  "status_counts": {
+    "200": 500
+  },
+  "error_codes": {}
+}
