@@ -114,8 +114,9 @@ Run the tests with `make test-edge`; the latency test asserts p99 < 15 ms over
 
 ### Deployed
 
-The Agien schema and both functions are live in the `newtek` project. Deploy
-uses the platform API (`PUT /{name}` to update, `POST /` to create), with the
+The Agien schema and the `evaluate`, `outcomes`, `purge` and `beacon` functions
+are live in the `newtek` project. Deploy uses the platform API or the MCP
+`deployFunction` tool (`PUT /{name}` to update, `POST /` to create), with the
 function bundled to a single file via `deno bundle`:
 
 ```bash
@@ -137,6 +138,24 @@ curl -sS https://newtek.eurobase.app/v1/functions/evaluate \
   -H "Content-Type: application/json" \
   -d '{"venue_id":"<venue-uuid>","request":{"ip":"203.0.113.7","user_agent":"Mozilla/5.0","headers":{"accept-language":"en"}},"booking":{"cancellation_policy":"card_hold"}}'
 ```
+
+## Beacon function
+
+`apps/edge/functions/beacon/` implements `POST /v1/beacon`:
+
+- `mod.ts` — pure validation (`validateBeaconRequest`) mirroring the OpenAPI
+  `BeaconRequest` schema: `session_token` (non-empty string) and
+  `feature_vector` (object).
+- `http.ts` — `handleRequest`: parse JSON, validate, then resolve the active
+  session by hashing `session_token` (SHA-256) against `sessions.token_hash`
+  and checking `expires_at > now()`. On success it inserts one row into
+  `beacons` (session, venue, `feature_vector` jsonb); raw field values are
+  never stored, only the computed feature vector. No API key is required — the
+  caller is identified by the session token alone, matching the OpenAPI
+  `security: []` on `/v1/beacon`.
+- `index.ts` — the deployed `EdgeHandler`, adapting the Eurobase `ctx` surface.
+
+Run the tests with `make test-edge`.
 
 ## Retention purge
 
