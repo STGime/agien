@@ -176,6 +176,29 @@ make loadtest LOCATION=berlin VENUE_ID=<uuid> VENUE_KEY=sk_test_ven_test_a \
 Results are committed under `apps/edge/loadtest/results/` with the test date,
 region/configuration, and workload shape captured in the JSON.
 
+## Demo booking site
+
+`apps/demo-site/` is the corpus/e2e fixture: a static restaurant booking page
+(plain HTML/JS/CSS, no framework) plus three public edge functions.
+
+- `functions/session` — `POST /api/session`: mints a 10-minute session token
+  for the `ven_demo` venue (stored as a SHA-256 hash in `sessions`).
+- `functions/slots` — `GET /api/slots?date=YYYY-MM-DD`: availability for the
+  seeded 14-day slot grid. Sold-out slots are `available: false`; a hot slot
+  (19:00) only becomes available at its release minute (11:00).
+- `functions/book` — `POST /api/book`: validates the session token (unknown →
+  400, expired → 410), then books a slot (double-booking → 409).
+
+```bash
+make demo-up          # serves the page + proxies /api/* to newtek on :8000
+cd apps/demo-site && npm install && npx playwright install chromium
+cd apps/demo-site && npm test   # e2e (requires make demo-up running)
+```
+
+The `demo_slots` / `demo_bookings` schema is `migrations/0007_demo.sql` (applied
+to `newtek`). `apps/demo-site/server.ts` proxies `/api/*` to the deployed
+functions so the page never sees the Eurobase project key.
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the
