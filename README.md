@@ -273,6 +273,34 @@ client-side by `venue_id`; and the e2e uses an in-browser mock client because
 real magic-link login needs a seeded auth user + email inbox and JWT→venue_id
 RLS wiring, none of which exist yet.
 
+## Feature extraction + reason-code registry (#10)
+
+One definition of the model feature vector, implemented in TypeScript
+(`packages/features`, consumed by the Edge Function) and mirrored in Python
+(`ml/agien_features`, consumed by training). See `docs/features-v0.md` for the
+full key-by-key definition and `docs/reasons-v0.md` for the reason-code
+registry.
+
+```bash
+make test-features     # Deno: unit tests + golden fixtures
+cd ml && uv run pytest tests/test_features_python.py tests/test_parity.py tests/test_reason_registry.py
+```
+
+The shared vector is flat (14 scalars): request-source booleans
+(`has_accept_language`, `has_referer`, `user_agent_present`,
+`is_datacenter_ip` — the CIDR list is one shared JSON file read by both
+languages) plus beacon-source features (`t_load_to_first_input_ms`,
+`t_first_input_to_submit_ms`, `field_order_match`, keystroke and pointer
+counters/timings, `scroll_event_count`). Beacon-only signals the #7 corpus
+does not capture (`paste`, `dwell_ms`, `visibility_changes`, viewport/screen/
+webdriver) are documented and excluded until the corpus schema is extended.
+
+The parity test runs the TypeScript `extract()` (via `deno run`, subprocess)
+and the Python `extract()` over the same golden fixtures
+(`packages/features/golden/`) and asserts floats agree to 1e-9 and
+ints/bools exactly. The registry test greps `apps/edge` and `packages/beacon`
+for reason-code emissions and fails on any code not in `docs/reasons-v0.md`.
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the

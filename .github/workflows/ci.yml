@@ -37,8 +37,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Test ml
         run: cd ml && uv run pytest -q
+
+  features:
+    name: features (Deno)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test features
+        run: deno test packages/features/ --allow-read
 
   db:
     name: db (Postgres)

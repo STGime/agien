@@ -2,7 +2,7 @@ SHELL := /bin/bash
 DENO  ?= deno
 DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/agien
 
-.PHONY: test test-edge test-js test-ml test-db test-contract lint lint-edge lint-js lint-ml lint-contract db-up db-reset loadtest demo-up corpus
+.PHONY: test test-edge test-js test-ml test-db test-contract test-features lint lint-edge lint-js lint-ml lint-contract lint-features db-up db-reset loadtest demo-up corpus
 
 ## Run all test suites; exits non-zero if any one fails.
 test:
@@ -11,6 +11,7 @@ test:
 	$(MAKE) test-js       || err=1; \
 	$(MAKE) test-ml       || err=1; \
 	$(MAKE) test-contract || err=1; \
+	$(MAKE) test-features || err=1; \
 	exit $$err
 
 test-edge:
@@ -23,6 +24,9 @@ test-js:
 test-ml:
 	cd ml && uv run pytest -q
 
+test-features:
+	cd packages/features && $(DENO) test --allow-read
+
 corpus:
 	cd ml && uv run python -m corpus.generate --seed 1 --n 200 --skip-browser-use --out-dir corpus/data
 
@@ -30,7 +34,7 @@ test-contract:
 	cd packages/contract && npm test
 
 ## Lint all runtimes.
-lint: lint-edge lint-js lint-ml lint-contract
+lint: lint-edge lint-js lint-ml lint-contract lint-features
 
 lint-edge:
 	cd apps/edge && $(DENO) fmt --check && $(DENO) lint
@@ -44,6 +48,9 @@ lint-contract:
 
 lint-ml:
 	cd ml && uv run ruff check . && uv run ruff format --check .
+
+lint-features:
+	cd packages/features && $(DENO) fmt --check && $(DENO) lint
 
 ## Local Postgres + database tests (issue #3).
 db-up:

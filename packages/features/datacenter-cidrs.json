@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "description": "v0 datacenter/cloud IPv4 CIDR allowlist — single source of truth shared by packages/features (TS) and ml/agien_features (Python). Mirrors apps/edge/functions/evaluate/datacenter.ts; keep in sync until a vendored ASN database replaces it in Sprint 1.",
+  "cidrs": [
+    "3.0.0.0/9",
+    "18.0.0.0/9",
+    "34.0.0.0/9",
+    "35.0.0.0/9",
+    "13.64.0.0/11",
+    "20.0.0.0/10",
+    "159.89.0.0/16",
+    "165.22.0.0/16",
+    "116.203.0.0/16",
+    "167.235.0.0/16",
+    "129.146.0.0/16",
+    "140.238.0.0/16"
+  ]
+}

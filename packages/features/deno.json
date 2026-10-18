@@ -1,0 +1,18 @@
+{
+  "name": "@agien/features",
+  "version": "0.1.0",
+  "exports": "./src/extract.ts",
+  "compilerOptions": {
+    "lib": ["deno.window", "esnext"]
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "semiColons": true,
+    "singleQuote": false,
+    "lineWidth": 100
+  }
+}
