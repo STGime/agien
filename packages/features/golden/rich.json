@@ -1,0 +1,53 @@
+{
+  "id": "rich",
+  "request": {
+    "headers": {
+      "accept-language": "en",
+      "referer": "https://venue.example/book",
+      "user-agent": "Mozilla/5.0"
+    },
+    "ip": "34.100.50.10"
+  },
+  "beacon": {
+    "feature_vector": {
+      "t_load_to_first_input": 100,
+      "t_first_input_to_submit": 1400,
+      "focus_order": [0, 1, 2],
+      "keystroke_count": 4,
+      "keystroke_interval_std_ms": 10.0,
+      "pointer_event_count": 3,
+      "pointer_path_length_px": 10.0,
+      "pointer_straightness": 1.0,
+      "scroll_event_count": 0
+    }
+  },
+  "events": [
+    { "type": "mousemove", "t_ms": 100, "field": null, "x": 0, "y": 0 },
+    { "type": "mousemove", "t_ms": 200, "field": null, "x": 3, "y": 4 },
+    { "type": "mousemove", "t_ms": 300, "field": null, "x": 6, "y": 8 },
+    { "type": "focus", "t_ms": 500, "field": "f0", "x": null, "y": null },
+    { "type": "keydown", "t_ms": 1000, "field": "f0", "x": null, "y": null },
+    { "type": "keydown", "t_ms": 1010, "field": "f0", "x": null, "y": null },
+    { "type": "keydown", "t_ms": 1030, "field": "f0", "x": null, "y": null },
+    { "type": "keydown", "t_ms": 1060, "field": "f0", "x": null, "y": null },
+    { "type": "focus", "t_ms": 1100, "field": "f1", "x": null, "y": null },
+    { "type": "focus", "t_ms": 1200, "field": "f2", "x": null, "y": null },
+    { "type": "submit", "t_ms": 1500, "field": null, "x": null, "y": null }
+  ],
+  "expected": {
+    "has_accept_language": true,
+    "has_referer": true,
+    "user_agent_present": true,
+    "is_datacenter_ip": true,
+    "beacon_present": true,
+    "t_load_to_first_input_ms": 100,
+    "t_first_input_to_submit_ms": 1400,
+    "field_order_match": 1.0,
+    "keystroke_count": 4,
+    "keystroke_interval_std_ms": 10.0,
+    "pointer_event_count": 3,
+    "pointer_path_length_px": 10.0,
+    "pointer_straightness": 1.0,
+    "scroll_event_count": 0
+  }
+}

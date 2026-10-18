@@ -1,0 +1,29 @@
+{
+  "id": "beaconless",
+  "request": {
+    "headers": {},
+    "ip": "203.0.113.7"
+  },
+  "beacon": {
+    "feature_vector": null
+  },
+  "events": [
+    { "type": "http", "t_ms": 0, "field": null, "x": null, "y": null }
+  ],
+  "expected": {
+    "has_accept_language": false,
+    "has_referer": false,
+    "user_agent_present": false,
+    "is_datacenter_ip": false,
+    "beacon_present": false,
+    "t_load_to_first_input_ms": null,
+    "t_first_input_to_submit_ms": null,
+    "field_order_match": null,
+    "keystroke_count": null,
+    "keystroke_interval_std_ms": null,
+    "pointer_event_count": null,
+    "pointer_path_length_px": null,
+    "pointer_straightness": null,
+    "scroll_event_count": null
+  }
+}
