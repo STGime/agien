@@ -54,6 +54,17 @@ jobs:
       - name: Test features
         run: deno test packages/features/ --allow-read
 
+  model-runtime:
+    name: model-runtime (Deno)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test model-runtime
+        run: deno test packages/model-runtime/ --allow-read
+
   db:
     name: db (Postgres)
     runs-on: ubuntu-latest

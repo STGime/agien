@@ -2,16 +2,17 @@ SHELL := /bin/bash
 DENO  ?= deno
 DATABASE_URL ?= postgres://postgres:postgres@localhost:5432/agien
 
-.PHONY: test test-edge test-js test-ml test-db test-contract test-features lint lint-edge lint-js lint-ml lint-contract lint-features db-up db-reset loadtest demo-up corpus
+.PHONY: test test-edge test-js test-ml test-db test-contract test-features test-model-runtime lint lint-edge lint-js lint-ml lint-contract lint-features lint-model-runtime db-up db-reset loadtest demo-up corpus train
 
 ## Run all test suites; exits non-zero if any one fails.
 test:
 	@err=0; \
-	$(MAKE) test-edge     || err=1; \
-	$(MAKE) test-js       || err=1; \
-	$(MAKE) test-ml       || err=1; \
-	$(MAKE) test-contract || err=1; \
-	$(MAKE) test-features || err=1; \
+	$(MAKE) test-edge          || err=1; \
+	$(MAKE) test-js            || err=1; \
+	$(MAKE) test-ml            || err=1; \
+	$(MAKE) test-contract      || err=1; \
+	$(MAKE) test-features      || err=1; \
+	$(MAKE) test-model-runtime || err=1; \
 	exit $$err
 
 test-edge:
@@ -27,14 +28,21 @@ test-ml:
 test-features:
 	cd packages/features && $(DENO) test --allow-read
 
+test-model-runtime:
+	cd packages/model-runtime && $(DENO) test --allow-read
+
 corpus:
 	cd ml && uv run python -m corpus.generate --seed 1 --n 200 --skip-browser-use --out-dir corpus/data
+
+## Train the baseline classifier and export models/agent_v0.json + metrics.
+train:
+	cd ml && uv run python -m train --seed 42 --n 800
 
 test-contract:
 	cd packages/contract && npm test
 
 ## Lint all runtimes.
-lint: lint-edge lint-js lint-ml lint-contract lint-features
+lint: lint-edge lint-js lint-ml lint-contract lint-features lint-model-runtime
 
 lint-edge:
 	cd apps/edge && $(DENO) fmt --check && $(DENO) lint
@@ -51,6 +59,9 @@ lint-ml:
 
 lint-features:
 	cd packages/features && $(DENO) fmt --check && $(DENO) lint
+
+lint-model-runtime:
+	cd packages/model-runtime && $(DENO) fmt --check && $(DENO) lint
 
 ## Local Postgres + database tests (issue #3).
 db-up:

@@ -301,6 +301,32 @@ and the Python `extract()` over the same golden fixtures
 ints/bools exactly. The registry test greps `apps/edge` and `packages/beacon`
 for reason-code emissions and fails on any code not in `docs/reasons-v0.md`.
 
+## Classifier (#11)
+
+`ml/train.py` trains the baseline GBDT (LightGBM ≤50 trees, depth ≤4) plus a
+logistic-regression baseline on corpus v0, calibrates with Platt scaling on a
+separate calibration split, and exports a dependency-free JSON tree model
+(`models/agent_v0.json` + `agent_v0.metrics.json`). `packages/model-runtime`
+runs it in Deno with no runtime deps.
+
+```bash
+make train            # seed 42, n=800 → models/agent_v0.{json,metrics.json}
+make test-model-runtime   # Deno: tree-walk unit tests + perf (<0.2 ms)
+cd ml && uv run pytest tests/test_train.py tests/test_model_parity.py
+```
+
+The model-runtime parity test scores 500 held-out rows in Python and in the
+Deno runtime and asserts agreement to 1e-6. See `docs/model-cards/agent_v0.md`
+for what this model is — and is not.
+
+**Important caveat:** corpus v0 has no human records (#7
+`human_collection_pending`), so `p_agent` (agent-vs-human) cannot be trained
+yet. `agent_v0` trains on the only distinction present — server-side
+automation (`raw_http`) vs browser automation (`playwright`) — purely to
+de-risk the train→export→runtime→parity pipeline. The acceptance gate that
+needs human data (`playwright_humanlike` recall @ human FPR ≤ 0.02) is
+reported as `human_gate_blocked: true`, not fabricated.
+
 ## Retention purge
 
 `apps/edge/functions/purge/` is a scheduled job that deletes rows past the
