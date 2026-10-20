@@ -15,7 +15,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Test edge
-        run: deno test apps/edge/ --allow-read --allow-net
+        run: cd apps/edge && deno test --allow-read --allow-net
 
   js:
     name: js (Vitest)
@@ -120,5 +120,6 @@ jobs:
         run: |
           cd packages/beacon && npm ci
           cd ../contract && npm ci
+          cd ../../apps/dashboard && npm ci
       - name: Lint
         run: make lint

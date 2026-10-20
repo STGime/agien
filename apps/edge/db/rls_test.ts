@@ -24,6 +24,21 @@ async function venueId(client: Client, slug: string): Promise<string> {
   return r.rows[0].id;
 }
 
+/**
+ * Create a non-superuser, non-owner role so RLS actually applies. Postgres
+ * bypasses RLS for superusers and table owners, so running the assertions as
+ * the migration user (postgres) would silently see every row.
+ */
+async function createAppRole(client: Client): Promise<void> {
+  try {
+    await client.queryObject`CREATE ROLE rls_app`;
+  } catch {
+    // already exists from a previous run
+  }
+  await client.queryObject`GRANT USAGE ON SCHEMA public TO rls_app`;
+  await client.queryObject`GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO rls_app`;
+}
+
 Deno.test({
   name: "RLS: venue A sees only its own evaluations; cross-venue insert is rejected",
   ignore: !DATABASE_URL,
@@ -32,6 +47,7 @@ Deno.test({
     try {
       await resetSchema(client);
       await runMigrations(client, MIGRATIONS);
+      await createAppRole(client);
 
       // Seed as service, and create one evaluation per venue.
       await client.queryObject`SELECT set_config('app.service_role', 'true', false)`;
@@ -47,6 +63,7 @@ Deno.test({
       // As venue A (service off): only venue A's row is visible.
       await client.queryObject`SELECT set_config('app.service_role', '', false)`;
       await client.queryObject`SELECT set_config('app.venue_id', ${va}, false)`;
+      await client.queryObject`SET ROLE rls_app`;
       const mine = await client.queryObject<{ action: string }>(
         "SELECT action FROM evaluations",
       );
